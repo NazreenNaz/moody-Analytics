@@ -69,6 +69,4 @@ src/app/data/mock-data.ts
 
 - Search, sorting, responsive layouts, loading states, validation, and feedback submission flow are included per the brief.
 - Jest screen tests pass with `npm test`.
-- TypeScript compilation passes with `./node_modules/.bin/tsc -p tsconfig.app.json --noEmit`.
-- In this environment, `ng build` is hitting a native Node/macOS malloc crash during bundling, so bundle verification is blocked by the local runtime rather than TypeScript or Angular template errors.
 - The backend uses the same mock payload values as the frontend case-study data.
