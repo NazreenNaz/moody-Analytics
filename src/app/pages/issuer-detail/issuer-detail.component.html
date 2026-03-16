@@ -1,0 +1,89 @@
+<section class="page-shell">
+  @if (loading) {
+    <div class="loading-state">
+      <p-progressSpinner ariaLabel="Loading issuer detail"></p-progressSpinner>
+    </div>
+  } @else if (errorMessage) {
+    <p-message severity="error" [text]="errorMessage"></p-message>
+  } @else if (detail) {
+    <p-breadcrumb [model]="breadcrumbItems" [home]="getHome()"></p-breadcrumb>
+
+    <div class="page-title-row">
+      <h1>Issuer Detail Overview</h1>
+    </div>
+
+    <div class="action-row">
+      <p-button label="Back to Dashboard" icon="pi pi-arrow-left" [outlined]="true" (onClick)="goBack()"></p-button>
+      <a [routerLink]="['/issuer', detail.issuer.id, 'feedback']">
+        <p-button label="Provide Feedback" icon="pi pi-comment"></p-button>
+      </a>
+    </div>
+
+    <div class="detail-grid">
+      <p-card>
+        <div class="overview">
+          <div>
+            <h2>{{ detail.issuer.name }}</h2>
+            <p class="eyebrow">{{ detail.issuer.industry }}</p>
+            <p class="meta-line">{{ detail.issuer.country }} · Last updated {{ detail.issuer.lastUpdated | date: 'MM/dd/yyyy' }}</p>
+          </div>
+
+          <div class="overview-tags">
+            <p-tag [value]="'Rating ' + detail.issuer.rating" severity="contrast"></p-tag>
+            <p-tag [value]="detail.issuer.outlook" [severity]="detail.issuer.outlook === 'Positive' ? 'success' : detail.issuer.outlook === 'Negative' ? 'danger' : 'warn'"></p-tag>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card header="AI-Generated Insights">
+        <div class="insight-block">
+          <p>{{ detail.aiInsight.summary }}</p>
+          <div class="insight-meta">
+            <span>Confidence: {{ detail.aiInsight.confidence }}%</span>
+            <span>Generated: {{ detail.aiInsight.generatedAt | date: 'MM/dd/yyyy, h:mm a' }}</span>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card header="Rating History">
+        <p-table [value]="detail.history" responsiveLayout="scroll">
+          <ng-template pTemplate="header">
+            <tr>
+              <th>Date</th>
+              <th>Rating</th>
+              <th>Action</th>
+              <th>Rationale</th>
+            </tr>
+          </ng-template>
+          <ng-template pTemplate="body" let-item>
+            <tr>
+              <td>{{ item.date | date: 'MM/dd/yyyy' }}</td>
+              <td>{{ item.rating }}</td>
+              <td><p-tag [value]="item.action" [severity]="item.action === 'Upgrade' ? 'success' : item.action === 'Downgrade' ? 'danger' : 'warn'"></p-tag></td>
+              <td>{{ item.rationale }}</td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </p-card>
+
+      <p-card header="Key Drivers">
+        <div class="drivers-grid">
+          @for (driver of detail.drivers; track driver.id) {
+            <article class="driver-card">
+              <div class="driver-top">
+                <p-tag [value]="driver.category" severity="info"></p-tag>
+                <p-tag [value]="driver.impact" [severity]="getImpactSeverity(driver.impact)"></p-tag>
+              </div>
+              <h3>{{ driver.title }}</h3>
+              <p class="driver-copy">{{ driver.description }}</p>
+              <div class="score-row">
+                <span>Score {{ driver.score }}/10</span>
+                <p-progressBar [value]="driver.score * 10" [showValue]="false"></p-progressBar>
+              </div>
+            </article>
+          }
+        </div>
+      </p-card>
+    </div>
+  }
+</section>

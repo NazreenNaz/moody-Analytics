@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Technical Discussion Notes</title>
+  <style>
+    @page {
+      margin: 0.7in;
+      size: A4;
+    }
+
+    body {
+      font-family: "Helvetica", "Arial", sans-serif;
+      line-height: 1.45;
+      color: #1f2937;
+      font-size: 11pt;
+      margin: 0;
+    }
+
+    h1, h2 {
+      color: #20364d;
+      margin: 0 0 10px;
+    }
+
+    h1 {
+      font-size: 20pt;
+      border-bottom: 2px solid #d6e0ea;
+      padding-bottom: 10px;
+      margin-bottom: 18px;
+    }
+
+    h2 {
+      font-size: 14pt;
+      margin-top: 18px;
+    }
+
+    p {
+      margin: 0 0 10px;
+    }
+
+    ul {
+      margin: 0 0 10px 18px;
+      padding: 0;
+    }
+
+    li {
+      margin-bottom: 6px;
+    }
+
+    .lead {
+      color: #4b5563;
+      margin-bottom: 18px;
+    }
+
+    .file {
+      font-family: "Courier", monospace;
+      font-size: 10pt;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+  <h1>Technical Discussion Notes</h1>
+  <p class="lead">Prepared talking points for the Credit Ratings Analytics Application interview discussion.</p>
+
+  <h2>Architecture Rationale</h2>
+  <p>I chose a feature-oriented, route-driven structure because the app naturally breaks into three user flows: dashboard, issuer detail, and feedback. That is reflected in <span class="file">src/app/app.routes.ts</span> and the page components under <span class="file">src/app/pages</span>. This keeps each screen self-contained, easy to reason about, and easy to demo.</p>
+  <p>The structure is intentionally simple:</p>
+  <ul>
+    <li>App shell and routing in <span class="file">app.component.ts</span> and <span class="file">app.routes.ts</span></li>
+    <li>Shared domain models in <span class="file">ratings.models.ts</span></li>
+    <li>Data access in <span class="file">ratings.service.ts</span></li>
+    <li>Screen-level UI in dashboard, issuer detail, and feedback components</li>
+  </ul>
+  <p>This approach avoids overengineering for a case-study-sized application, while still giving a clean path to scale later.</p>
+
+  <h2>Trade-Offs Considered</h2>
+  <p>I used a service-based state approach instead of NgRx. For this app, the state is mostly route-scoped and short-lived: the issuer list, selected issuer detail, and feedback form state. Services kept the implementation smaller and faster to explain.</p>
+  <p>NgRx would make more sense if the app had shared state across many screens, complex side effects, optimistic updates, caching/invalidation, or multiple teams working in parallel. For this scope, service-based state was the better trade-off.</p>
+  <p>I also chose standalone components over a module-heavy design. That reduces boilerplate and works well with lazy loading.</p>
+
+  <h2>Routing Strategy</h2>
+  <p>The routing structure is:</p>
+  <ul>
+    <li><span class="file">/dashboard</span></li>
+    <li><span class="file">/issuer/:id</span></li>
+    <li><span class="file">/issuer/:id/feedback</span></li>
+  </ul>
+  <p>The issuer ID is passed through route parameters, which makes the selected entity explicit, bookmarkable, refresh-safe, and easy to test.</p>
+  <p>I also implemented a shared route resolver so issuer detail data is loaded before the detail and feedback routes activate. This keeps the route handling cleaner and reduces component-level fetch logic. Route transitions are paired with an app-level loading indicator so navigation still feels responsive.</p>
+
+  <h2>Scalability For 50+ Issuer Types</h2>
+  <p>If this platform needed to support many issuer types, I would move toward a more composable domain model. I would introduce a base issuer contract plus issuer-type-specific extensions, and render specialized sections depending on issuer type.</p>
+  <p>For example, corporate issuers, banks, and sovereigns would each need different key sections, but the app would still share a common shell, overview section, rating metadata, and navigation model.</p>
+  <p>The important idea is to avoid putting all issuer-specific logic into one massive detail component. Instead, I would separate common layout from issuer-type-specific presentation components.</p>
+
+  <h2>Performance For 10,000+ Issuers</h2>
+  <p>For large datasets, I would move away from client-side table processing and switch to server-side pagination, sorting, and filtering. The frontend would only request the current page with query parameters like page, page size, sort, and search.</p>
+  <p>That reduces browser memory usage, improves initial load time, and lets the database handle the expensive operations more efficiently.</p>
+  <p>In the current app, I already added several frontend optimizations:</p>
+  <ul>
+    <li>Lazy-loaded routes</li>
+    <li>OnPush change detection</li>
+    <li>Debounced search</li>
+    <li>Subscription cleanup with <span class="file">takeUntilDestroyed()</span></li>
+  </ul>
+  <p>If the app grew further, I would add caching, server-driven queries, and virtual scrolling where appropriate.</p>
+
+  <h2>Team Collaboration</h2>
+  <p>For multiple developers, I would move the structure into clearer feature boundaries such as dashboard, issuer detail, feedback, shared UI, shared models, and core services. That makes ownership clearer and reduces merge conflicts.</p>
+  <p>I would also standardize:</p>
+  <ul>
+    <li>API contracts and interface naming</li>
+    <li>Loading and error handling patterns</li>
+    <li>Accessibility expectations</li>
+    <li>Testing strategy and CI checks</li>
+    <li>Code review checklists</li>
+  </ul>
+  <p>If the product became large enough, I would likely turn shared UI and domain logic into reusable libraries.</p>
+
+  <h2>Testing Approach</h2>
+  <p>My testing strategy would be layered:</p>
+  <ul>
+    <li>Unit tests for services, validators, and resolvers</li>
+    <li>Component tests for dashboard rendering, detail display, and feedback step logic</li>
+    <li>Integration tests for route flow and submission behavior</li>
+    <li>End-to-end tests for the full user journey: dashboard to detail to feedback to submission</li>
+    <li>Accessibility tests with axe-core and keyboard-only checks</li>
+  </ul>
+  <p>For production quality, I would wire these into CI so every merge is checked automatically.</p>
+
+  <h2>Security</h2>
+  <p>This demo app uses mock data, but in a real system security would be handled across authentication, authorization, and data protection.</p>
+  <ul>
+    <li>Authentication through enterprise SSO or another trusted identity provider</li>
+    <li>Authorization enforced on the backend, not just the UI</li>
+    <li>HTTPS everywhere and secure headers</li>
+    <li>Server-side validation of all inputs</li>
+    <li>Protection against unauthorized issuer access using role checks and ID-based validation</li>
+    <li>Generic user-facing error messages to avoid leaking internal details</li>
+  </ul>
+  <p>If using cookie-based auth, I would also include CSRF protection. If using tokens, I would be careful about storage and token expiration handling.</p>
+
+  <h2>Accessibility / WCAG Approach</h2>
+  <p>I would approach accessibility as a core product requirement, not a late add-on. In this app, I improved form labels, keyboard focus movement between steps, screen-reader-friendly error announcements, and live step announcements.</p>
+  <p>My broader WCAG approach would include:</p>
+  <ul>
+    <li>Semantic HTML and correct heading structure</li>
+    <li>Visible focus states</li>
+    <li>Keyboard-only completion of all workflows</li>
+    <li>Proper label and input associations</li>
+    <li>Error messaging that is both visible and announced</li>
+    <li>Sufficient color contrast and no color-only meaning</li>
+    <li>Responsive behavior at zoom and different viewport sizes</li>
+    <li>Manual testing with screen readers such as VoiceOver or NVDA</li>
+  </ul>
+  <p>If given more time, I would add automated accessibility checks and run a more complete screen-reader audit of the PrimeNG controls.</p>
+
+  <h2>Good Closing Summary</h2>
+  <p>I would close by saying: I intentionally kept the implementation simple and production-aware. I used standalone routed components, a lightweight service layer, route parameters for state identity, and resolvers for detail preloading. Then I added targeted improvements like lazy loading, OnPush, debounced search, subscription cleanup, accessibility, and route transition loading. That gives a solution that is easy to explain, appropriate for the case study scope, and still has a credible path to scale into a larger enterprise ratings platform.</p>
+</body>
+</html>

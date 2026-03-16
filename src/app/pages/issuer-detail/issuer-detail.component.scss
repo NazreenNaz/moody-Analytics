@@ -1,0 +1,103 @@
+.page-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.loading-state {
+  display: grid;
+  place-items: center;
+  min-height: 18rem;
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-title-row h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  color: #2d3e50;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.overview {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+.overview h2 {
+  margin: 0.35rem 0;
+}
+
+.meta-line {
+  margin: 0;
+  color: #4b5563;
+}
+
+.overview-tags,
+.driver-top,
+.insight-meta {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.drivers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.driver-card {
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+}
+
+.driver-card h3 {
+  margin: 0.85rem 0 0.5rem;
+}
+
+.driver-copy {
+  margin: 0 0 1rem;
+  color: #374151;
+}
+
+.score-row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.insight-block p {
+  margin-top: 0;
+}
+
+.insight-meta {
+  color: #4b5563;
+  font-size: 0.92rem;
+}
+
+@media (max-width: 768px) {
+  .action-row {
+    align-items: stretch;
+  }
+}

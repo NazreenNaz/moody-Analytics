@@ -1,0 +1,22 @@
+:host {
+  display: block;
+}
+
+.route-progress {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app-shell {
+  min-height: calc(100vh - 72px);
+}
+
+.app-footer {
+  padding: 1rem;
+  text-align: center;
+  color: #dbe4ec;
+  font-size: 0.9rem;
+  background: #44576d;
+  border-top: 1px solid #5d7086;
+}

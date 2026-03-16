@@ -1,0 +1,216 @@
+<p-dialog
+  [(visible)]="showStatusDialog"
+  [modal]="true"
+  [closable]="false"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: '28rem', maxWidth: '90vw' }"
+>
+  <ng-template pTemplate="header">
+    <span>{{ statusDialogTitle }}</span>
+  </ng-template>
+
+  <div class="status-dialog">
+    <p>{{ statusDialogMessage }}</p>
+    <p-button label="OK" (onClick)="closeStatusDialog()"></p-button>
+  </div>
+</p-dialog>
+
+<section class="page-shell">
+  @if (loading) {
+    <div class="loading-state">
+      <p-progressSpinner ariaLabel="Loading feedback form"></p-progressSpinner>
+    </div>
+  } @else if (detail) {
+    <header class="page-header">
+      <div>
+        <p class="eyebrow">Feedback Form</p>
+        <h1>Review {{ detail.issuer.name }}</h1>
+        <div class="tag-row">
+          <p-tag [value]="'Rating ' + detail.issuer.rating" severity="contrast"></p-tag>
+          <p-tag [value]="detail.issuer.outlook" [severity]="detail.issuer.outlook === 'Positive' ? 'success' : detail.issuer.outlook === 'Negative' ? 'danger' : 'warn'"></p-tag>
+        </div>
+      </div>
+
+      <a [routerLink]="['/issuer', detail.issuer.id]">
+        <p-button label="Back to Detail" icon="pi pi-arrow-left" [outlined]="true"></p-button>
+      </a>
+    </header>
+
+    <p-steps [model]="stepItems" [activeIndex]="currentStep" [readonly]="true"></p-steps>
+    <!-- <p class="sr-only" aria-live="polite">{{ getStepSummary() }}</p> -->
+
+    <p-card>
+      <p class="step-copy">Step {{ currentStep + 1 }} of 4</p>
+
+      @if (currentStep === 0) {
+        <div class="form-grid" [formGroup]="userGroup">
+          <label class="field" for="name">
+            <span>Name <strong class="required-mark">*</strong></span>
+            <input id="name" pInputText formControlName="name" aria-describedby="name-error name-minlength-error" />
+            @if (hasError('user', 'name', 'required')) {
+              <p-message id="name-error" severity="error" text="Name is required."></p-message>
+              <span class="sr-only" role="alert">Name is required.</span>
+            }
+            @if (hasError('user', 'name', 'minlength')) {
+              <p-message id="name-minlength-error" severity="error" text="Name must be at least 2 characters."></p-message>
+              <span class="sr-only" role="alert">Name must be at least 2 characters.</span>
+            }
+          </label>
+
+          <label class="field" for="email">
+            <span>Email <strong class="required-mark">*</strong></span>
+            <input id="email" pInputText type="email" formControlName="email" aria-describedby="email-error email-format-error" />
+            @if (hasError('user', 'email', 'required')) {
+              <p-message id="email-error" severity="error" text="Email is required."></p-message>
+              <span class="sr-only" role="alert">Email is required.</span>
+            }
+            @if (hasError('user', 'email', 'email')) {
+              <p-message id="email-format-error" severity="error" text="Enter a valid email address."></p-message>
+              <span class="sr-only" role="alert">Enter a valid email address.</span>
+            }
+          </label>
+
+          <label class="field" for="role">
+            <span>Role <strong class="required-mark">*</strong></span>
+            <p-select inputId="role" [options]="roles" formControlName="role" placeholder="Select role" aria-describedby="role-error"></p-select>
+            @if (hasError('user', 'role', 'required')) {
+              <p-message id="role-error" severity="error" text="Role is required."></p-message>
+              <span class="sr-only" role="alert">Role is required.</span>
+            }
+          </label>
+
+          <label class="field" for="organization">
+            <span>Organization</span>
+            <input id="organization" pInputText formControlName="organization" />
+          </label>
+        </div>
+      }
+
+      @if (currentStep === 1) {
+        <div class="ratings-grid" [formGroup]="ratingsGroup" role="group" aria-labelledby="ratings-step-heading">
+          <h2 id="ratings-step-heading" class="sr-only">Rating feedback questions</h2>
+          <div class="rating-field" id="rating-accuracy" tabindex="-1">
+            <span>Rating Accuracy <strong class="required-mark">*</strong></span>
+            <small>How accurate is the assigned rating?</small>
+            <p-rating formControlName="accuracy" [stars]="5"></p-rating>
+          </div>
+          <div class="rating-field">
+            <span>Driver Relevance <strong class="required-mark">*</strong></span>
+            <small>How relevant are the identified key drivers?</small>
+            <p-rating formControlName="driverRelevance" [stars]="5"></p-rating>
+          </div>
+          <div class="rating-field">
+            <span>AI Insight Quality <strong class="required-mark">*</strong></span>
+            <small>How useful is the AI-generated analysis?</small>
+            <p-rating formControlName="aiInsightQuality" [stars]="5"></p-rating>
+          </div>
+          <div class="rating-field">
+            <span>Timeliness <strong class="required-mark">*</strong></span>
+            <small>How current is the rating analysis?</small>
+            <p-rating formControlName="timeliness" [stars]="5"></p-rating>
+          </div>
+        </div>
+      }
+
+      @if (currentStep === 2) {
+        <div class="detail-grid" [formGroup]="feedbackGroup">
+          <div class="driver-selection">
+            <h2>Key drivers you agree with <strong class="required-mark">*</strong></h2>
+            @for (driver of detail.drivers; track driver.id) {
+              <label class="checkbox-row" [for]="'agree-' + driver.id">
+                <p-checkbox
+                  [inputId]="'agree-' + driver.id"
+                  [binary]="true"
+                  [ngModel]="isDriverSelected(driver.id, 'agreed')"
+                  [ngModelOptions]="{ standalone: true }"
+                  (onChange)="toggleDriverSelection(driver.id, 'agreed', $event.checked)"
+                ></p-checkbox>
+                <span>{{ driver.title }}</span>
+              </label>
+            }
+            @if (feedbackGroup.touched && feedbackGroup.hasError('agreedDriversRequired')) {
+              <p-message severity="error" text="Select at least one agreed driver."></p-message>
+              <span class="sr-only" role="alert">Select at least one agreed driver.</span>
+            }
+          </div>
+
+          <div class="driver-selection">
+            <h2>Key drivers you disagree with <strong class="required-mark">*</strong></h2>
+            @for (driver of detail.drivers; track driver.id) {
+              <label class="checkbox-row" [for]="'disagree-' + driver.id">
+                <p-checkbox
+                  [inputId]="'disagree-' + driver.id"
+                  [binary]="true"
+                  [ngModel]="isDriverSelected(driver.id, 'disagreed')"
+                  [ngModelOptions]="{ standalone: true }"
+                  (onChange)="toggleDriverSelection(driver.id, 'disagreed', $event.checked)"
+                ></p-checkbox>
+                <span>{{ driver.title }}</span>
+              </label>
+            }
+            @if (feedbackGroup.touched && feedbackGroup.hasError('disagreedDriversRequired')) {
+              <p-message severity="error" text="Select at least one disagreed driver."></p-message>
+              <span class="sr-only" role="alert">Select at least one disagreed driver.</span>
+            }
+          </div>
+
+          <label class="field field-full" for="additionalFactors">
+            <span>Additional factors to consider</span>
+            <textarea id="additionalFactors" pTextarea formControlName="additionalFactors" rows="5"></textarea>
+            <small>{{ feedbackGroup.get('additionalFactors')?.value?.length || 0 }}/500</small>
+          </label>
+
+          <label class="field field-full" for="comments">
+            <span>General comments</span>
+            <textarea id="comments" pTextarea formControlName="comments" rows="6"></textarea>
+            <small>{{ feedbackGroup.get('comments')?.value?.length || 0 }}/1000</small>
+          </label>
+        </div>
+      }
+
+      @if (currentStep === 3) {
+        <div class="review-grid" id="review-heading" tabindex="-1">
+          <div>
+            <h2>Issuer</h2>
+            <p>{{ detail.issuer.name }} ({{ detail.issuer.rating }})</p>
+          </div>
+          <div>
+            <h2>User Information</h2>
+            <p>{{ userGroup.get('name')?.value }} · {{ userGroup.get('email')?.value }}</p>
+            <p>{{ userGroup.get('role')?.value }} &#64; {{ userGroup.get('organization')?.value || 'N/A' }}</p>
+          </div>
+          <div>
+            <h2>Ratings</h2>
+            <p>Accuracy: {{ ratingsGroup.get('accuracy')?.value }}/5</p>
+            <p>Driver Relevance: {{ ratingsGroup.get('driverRelevance')?.value }}/5</p>
+            <p>AI Insight Quality: {{ ratingsGroup.get('aiInsightQuality')?.value }}/5</p>
+            <p>Timeliness: {{ ratingsGroup.get('timeliness')?.value }}/5</p>
+          </div>
+          <div>
+            <h2>Detailed Feedback</h2>
+            <p>Agreed drivers: {{ agreedDrivers.length || 0 }}</p>
+            <p>Disagreed drivers: {{ disagreedDrivers.length || 0 }}</p>
+            <p>{{ feedbackGroup.get('additionalFactors')?.value || 'No additional factors provided.' }}</p>
+            <p>{{ feedbackGroup.get('comments')?.value || 'No general comments provided.' }}</p>
+          </div>
+        </div>
+      }
+
+      <div class="button-row">
+        <p-button
+          label="Previous"
+          variant="outlined"
+          [disabled]="currentStep === 0 || submitting"
+          (onClick)="previousStep()"
+        ></p-button>
+
+        @if (currentStep < 3) {
+          <p-button label="Next" [disabled]="submitting || isCurrentStepInvalid()" (onClick)="nextStep()"></p-button>
+        } @else {
+          <p-button label="Submit Feedback" [loading]="submitting" (onClick)="submit()"></p-button>
+        }
+      </div>
+    </p-card>
+  }
+</section>
