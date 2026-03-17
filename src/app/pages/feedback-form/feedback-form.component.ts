@@ -180,44 +180,50 @@ export class FeedbackFormComponent implements OnInit {
     }
   }
 
-  submit(): void {
-    this.form.markAllAsTouched();
+ submit(): void {
+  this.form.markAllAsTouched();
 
-    if (this.form.invalid || !this.detail) {
-      return;
-    }
-
-    this.submitting = true;
-
-    this.ratingsService
-      .submitFeedback({
-        issuerId: this.detail.issuer.id,
-        user: this.form.getRawValue().user,
-        ratings: this.form.getRawValue().ratings,
-        feedback: this.form.getRawValue().feedback,
-        metadata: {
-          submittedAt: new Date().toISOString(),
-          version: '1.0'
-        }
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (response) => {
-          this.submitting = false;
-          this.statusDialogTitle = 'Feedback Submitted';
-          this.statusDialogMessage = response.message;
-          this.showStatusDialog = true;
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.submitting = false;
-          this.statusDialogTitle = 'Submission Failed';
-          this.statusDialogMessage = 'Try again.';
-          this.showStatusDialog = true;
-          this.cdr.markForCheck();
-        }
-      });
+  if (this.form.invalid || !this.detail) {
+    return;
   }
+
+  this.submitting = true;
+
+  this.ratingsService
+    .submitFeedback({
+      issuerId: this.detail.issuer.id,
+      user: this.form.getRawValue().user,
+      ratings: this.form.getRawValue().ratings,
+      feedback: this.form.getRawValue().feedback,
+      metadata: {
+        submittedAt: new Date().toISOString(),
+        version: '1.0'
+      }
+    })
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe({
+      next: (response) => {
+        this.submitting = false;
+
+        this.statusDialogTitle = response.success
+          ? 'Feedback Submitted'
+          : 'Submission Failed';
+
+        this.statusDialogMessage = response.message;
+        this.showStatusDialog = true;
+
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        // Only fallback safety (rare case)
+        this.submitting = false;
+        this.statusDialogTitle = 'Submission Failed';
+        this.statusDialogMessage = err.message || 'Try again.';
+        this.showStatusDialog = true;
+        this.cdr.markForCheck();
+      }
+    });
+}
 
   closeStatusDialog(): void {
     const wasSuccess = this.statusDialogTitle === 'Feedback Submitted';

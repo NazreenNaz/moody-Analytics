@@ -51,7 +51,7 @@ export class DashboardComponent implements OnInit {
       .getIssuers()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe( (issuers) => {
-        this.issuers = issuers;
+        this.issuers = [...issuers]; 
         this.loading = false;
         this.cdr.markForCheck();
       });

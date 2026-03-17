@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable, of, pipe } from 'rxjs';
+import { catchError, Observable, of, pipe, throwError } from 'rxjs';
 import { FeedbackSubmission, Issuer, IssuerDetailResponse } from '../models/ratings.models';
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +20,22 @@ export class RatingsService {
     return this.http.get<IssuerDetailResponse>(`/api/issuers/${id}`);
   }
 
-  submitFeedback(payload: FeedbackSubmission): Observable<{ success: boolean; feedbackId: string; message: string }> {
-    return this.http.post<{ success: boolean; feedbackId: string; message: string }>('/api/feedback', payload);
-  }
+  submitFeedback(
+  payload: FeedbackSubmission
+): Observable<{ success: boolean; feedbackId: string; message: string }> {
+  return this.http
+    .post<{ success: boolean; feedbackId: string; message: string }>(
+      '/api/feedback',
+      payload
+    )
+    .pipe(
+      catchError((error) => {
+        console.error('Submit feedback failed', error);
+        return throwError(() => ({
+          success: false,
+          message: 'Submission failed. Please try again.'
+        }));
+      })
+    );
+}
 }

@@ -3,6 +3,7 @@
     <div>
       <p class="eyebrow">Moody's AI-Powered Ratings Platform</p>
       <h1>Credit Ratings Analytics</h1>
+      <p class="page-copy">Browse issuer ratings, search by name or industry, and drill into the supporting analysis.</p>
     </div>
   </header>
 
@@ -30,9 +31,14 @@
         #dt
         [value]="issuers"
         [paginator]="true"
-        [rows]="10"
+        [rows]="rows"
+        [rowsPerPageOptions]="rowsPerPageOptions"
         [globalFilterFields]="['name', 'industry']"
         responsiveLayout="scroll"
+        [scrollable]="true"
+        scrollHeight="24rem"
+        [virtualScroll]="true"
+        [virtualScrollItemSize]="virtualScrollItemSize"
         sortMode="single"
         styleClass="issuer-table"
         [tableStyle]="{ 'min-width': '56rem' }"

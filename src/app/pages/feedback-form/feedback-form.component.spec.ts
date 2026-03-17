@@ -28,7 +28,7 @@ describe('FeedbackFormComponent', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            data: of({ detail: mockIssuerDetails.iss_001 })
+            data: of({ detail: mockIssuerDetails['iss_001'] })
           }
         },
         { provide: RatingsService, useValue: ratingsServiceMock }

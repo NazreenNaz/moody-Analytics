@@ -38,7 +38,7 @@
     </header>
 
     <p-steps [model]="stepItems" [activeIndex]="currentStep" [readonly]="true"></p-steps>
-    <!-- <p class="sr-only" aria-live="polite">{{ getStepSummary() }}</p> -->
+    <p class="sr-only" aria-live="polite">{{ getStepSummary() }}</p>
 
     <p-card>
       <p class="step-copy">Step {{ currentStep + 1 }} of 4</p>
